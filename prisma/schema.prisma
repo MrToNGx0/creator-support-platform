@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Creator {
+  id          String   @id @default(uuid())
+  creatorCode String   @unique
+  name        String
+  isPrimary   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  donations   Donation[]
+  leaderboard CreatorLeaderboard?
+}
+
+model Donator {
+  id        String   @id @default(uuid())
+  name      String   @unique
+
+  lastMilestoneNotified Int @default(0)
+
+  donations   Donation[]
+  leaderboard DonatorLeaderboard?
+}
+
+model Donation {
+  id        String   @id @default(uuid())
+  amount    Int
+  message   String?
+  createdAt DateTime @default(now())
+
+  creatorId String
+  creator   Creator @relation(fields: [creatorId], references: [id])
+
+  donatorId String
+  donator   Donator @relation(fields: [donatorId], references: [id])
+}
+
+model CreatorLeaderboard {
+  id          String   @id @default(uuid())
+  creatorId   String   @unique
+  totalAmount Int
+  updatedAt   DateTime @updatedAt
+
+  creator Creator @relation(fields: [creatorId], references: [id])
+}
+
+model DonatorLeaderboard {
+  id          String   @id @default(uuid())
+  donatorId   String   @unique
+  totalAmount Int
+  updatedAt   DateTime @updatedAt
+
+  donator Donator @relation(fields: [donatorId], references: [id])
+}
